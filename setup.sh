@@ -1,5 +1,25 @@
 #!/bin/bash
 
+echo "=== Checking Docker ==="
+
+if ! command -v docker &> /dev/null; then
+    echo "Docker not found. Installing..."
+    sudo apt-get update
+    sudo apt-get install -y docker.io docker-compose-plugin
+fi
+
+if ! groups | grep -q docker; then
+    echo "Adding user to docker group..."
+    sudo usermod -aG docker $USER
+    echo "Added to docker group. Applying changes..."
+    exec newgrp docker
+fi
+
+sudo service docker start 2>/dev/null || sudo systemctl start docker 2>/dev/null || true
+
+echo "Docker is ready!"
+echo ""
+
 ENV_FILE=".env"
 ENV_SAMPLE=".env_sample"
 
@@ -45,17 +65,17 @@ echo ""
 
 read -p "Enter email for Let's Encrypt (traefik): " email
 if [ -n "$email" ]; then
-    sed -i "s|^EMAIL_ADDRESS=|EMAIL_ADDRESS=$email|" "$ENV_FILE"
+    sed -i "s%^EMAIL_ADDRESS=%EMAIL_ADDRESS=$email%" "$ENV_FILE"
 fi
 
 read -p "Enter your domain (e.g., aiostreams.example.com): " domain
 if [ -n "$domain" ]; then
-    sed -i "s|^DOMAIN_NAME=|DOMAIN_NAME=$domain|" "$ENV_FILE"
+    sed -i "s%^DOMAIN_NAME=%DOMAIN_NAME=$domain%" "$ENV_FILE"
 fi
 
 read -p "Enter addon password (optional, press Enter to skip): " password
 if [ -n "$password" ]; then
-    sed -i "s|^ADDON_PASSWORD=|ADDON_PASSWORD=$password|" "$ENV_FILE"
+    sed -i "s%^ADDON_PASSWORD=%ADDON_PASSWORD=$password%" "$ENV_FILE"
 fi
 
 echo "Generating SECRET_KEY..."
