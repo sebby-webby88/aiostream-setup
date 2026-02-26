@@ -1,0 +1,50 @@
+#!/usr/bin/python3
+import subprocess
+import sys
+
+COMPOSE_FILE = "compose.yaml"
+
+class Colors:
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    RED = "\033[91m"
+    BLUE = "\033[94m"
+    CYAN = "\033[96m"
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+
+def print_status(color, msg):
+    print(f"{color}{msg}{Colors.RESET}")
+
+def print_help():
+    print(f"{Colors.BOLD}Usage:{Colors.RESET} ./aiostream {'|'.join(COMMANDS.keys())}")
+    print(f"\n{Colors.BOLD}Commands:{Colors.RESET}")
+    print(f"  {Colors.CYAN}up{Colors.RESET}      - Start containers")
+    print(f"  {Colors.CYAN}pull{Colors.RESET}    - Pull latest images")
+    print(f"  {Colors.CYAN}down{Colors.RESET}    - Stop containers")
+    print(f"  {Colors.CYAN}restart{Colors.RESET} - Restart containers")
+
+COMMANDS = {
+    "up": (f"docker compose -f {COMPOSE_FILE} up -d", "Starting containers..."),
+    "pull": (f"docker compose -f {COMPOSE_FILE} pull", "Pulling latest images..."),
+    "down": (f"docker compose -f {COMPOSE_FILE} down", "Stopping containers..."),
+    "restart": (f"docker compose -f {COMPOSE_FILE} restart", "Restarting containers..."),
+}
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2 or sys.argv[1] not in COMMANDS:
+        print_help()
+        sys.exit(1)
+
+    cmd_key = sys.argv[1]
+    cmd, status_msg = COMMANDS[cmd_key]
+
+    print_status(Colors.YELLOW, f"\n{status_msg}\n")
+    
+    result = subprocess.run(cmd, shell=True)
+    
+    if result.returncode == 0:
+        print_status(Colors.GREEN, f"\nDone! ({cmd_key})\n")
+    else:
+        print_status(Colors.RED, f"\nFailed with exit code {result.returncode}\n")
+        sys.exit(result.returncode)

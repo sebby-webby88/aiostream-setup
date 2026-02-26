@@ -1,0 +1,79 @@
+services:
+  aiostreams:
+    image: ghcr.io/viren070/aiostreams:latest
+    container_name: aiostreams
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    env_file:
+      - .env
+    environment:
+      - HOST=0.0.0.0
+      - NODE_OPTIONS=--dns-result-order=ipv4first
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.aiostreams.rule=Host(`${DOMAIN_NAME}`)"
+      - "traefik.http.routers.aiostreams.entrypoints=websecure"
+      - "traefik.http.routers.aiostreams.tls.certresolver=letsencrypt"
+    volumes:
+      - ./data:/app/data
+
+  traefik:
+    image: traefik:v3
+    container_name: traefik
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+    ports:
+      - 443:443
+    command:
+      - '--ping=true'
+      - '--api=true'
+      - '--api.dashboard=false'
+      - '--api.insecure=false'
+      - '--global.sendAnonymousUsage=false'
+      - '--global.checkNewVersion=false'
+      - '--log=true'
+      - '--log.level=DEBUG'
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entryPoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.email=${EMAIL_ADDRESS}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/config/acme.json"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./traefik:/config"
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  mediaflow-proxy:
+    image: mhdzumair/mediaflow-proxy:latest
+    container_name: mediaflow-proxy
+    restart: unless-stopped
+    ports:
+      - "8888:8888"
+    environment:
+      - API_PASSWORD=${ADDON_PASSWORD}
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8888/')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
