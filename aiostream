@@ -25,9 +25,9 @@ def print_help():
     print(f"  {Colors.CYAN}restart{Colors.RESET} - Restart containers")
 
 COMMANDS = {
-    "up": (f"docker compose -f {COMPOSE_FILE} up -d", "Starting containers..."),
+    "up": (f"docker compose -f {COMPOSE_FILE} up -d --remove-orphans", "Starting containers..."),
     "pull": (f"docker compose -f {COMPOSE_FILE} pull", "Pulling latest images..."),
-    "down": (f"docker compose -f {COMPOSE_FILE} down", "Stopping containers..."),
+    "down": (f"docker compose -f {COMPOSE_FILE} down --remove-orphans", "Stopping containers..."),
     "restart": (f"docker compose -f {COMPOSE_FILE} restart", "Restarting containers..."),
 }
 
