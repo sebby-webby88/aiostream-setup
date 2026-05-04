@@ -73,10 +73,14 @@ if [ -n "$domain" ]; then
     sed -i "s%^DOMAIN_NAME=%DOMAIN_NAME=$domain%" "$ENV_FILE"
 fi
 
-read -p "Enter addon password (optional, press Enter to skip): " password
-if [ -n "$password" ]; then
-    sed -i "s%^ADDON_PASSWORD=%ADDON_PASSWORD=$password%" "$ENV_FILE"
-fi
+while true; do
+    read -p "Enter addon password (required): " password
+    if [ -n "$password" ]; then
+        sed -i "s%^ADDON_PASSWORD=%ADDON_PASSWORD=$password%" "$ENV_FILE"
+        break
+    fi
+    echo "Password cannot be empty."
+done
 
 echo "Generating SECRET_KEY..."
 secret_key=$(openssl rand -hex 32)

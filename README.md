@@ -115,7 +115,7 @@ The `aiostream` helper is a Python script that wraps `docker compose`. Run it fr
 
 - **Email** — Let's Encrypt registration email
 - **Domain** — Your public domain (e.g. `aiostreams.duckdns.org`)
-- **Addon password** — Optional; press Enter to skip
+- **Addon password** — Required; protects your instance from unauthorized access
 
 A `SECRET_KEY` is generated automatically.
 

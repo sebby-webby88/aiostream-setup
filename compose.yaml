@@ -4,7 +4,7 @@ services:
     container_name: aiostreams
     restart: unless-stopped
     ports:
-      - 3000:3000
+      - 127.0.0.1:3000:3000
     env_file:
       - .env
     environment:
@@ -65,7 +65,7 @@ services:
     container_name: mediaflow-proxy
     restart: unless-stopped
     ports:
-      - "8888:8888"
+      - "127.0.0.1:8888:8888"
     environment:
       - API_PASSWORD=${ADDON_PASSWORD}
       - REDIS_URL=redis://redis:6379
